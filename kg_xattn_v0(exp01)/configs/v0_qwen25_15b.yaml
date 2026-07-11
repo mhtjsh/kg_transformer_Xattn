@@ -1,0 +1,62 @@
+model:
+  base_model_name: Qwen/Qwen2.5-1.5B-Instruct
+  graph_layers: [8, 13, 18, 23]
+  hidden_size: 1536
+  num_query_heads: 12
+  num_kv_heads: 2
+  head_dim: 128
+  max_memory_tokens: 48
+  raw_graph_dim: 2304
+  graph_projector_hidden_dim: 512
+  rms_norm_eps: 1.0e-6
+  graph_gate_init: 0.01
+
+lora:
+  r: 21
+  alpha: 42
+  dropout: 0.0
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+data:
+  train_path: data/ritek/train.json
+  dev_path: data/ritek/dev.json
+  test_path: data/ritek/test.json
+  kg_edges_path: data/ritek/processed/kg_edges.jsonl
+  question_topics_path: data/ritek/processed/question_topics.jsonl
+  entity_embeddings_path: data/ritek/cache/entity_embeddings.pt
+  relation_embeddings_path: data/ritek/cache/relation_embeddings.pt
+  max_length: 512
+  max_new_tokens: 64
+  prompt_template: |
+    Answer the question using only entity names from the medical knowledge graph. If there are multiple answers, separate them with " || ". Return only the answer string, with no explanation.
+
+    Question: {question}
+    Answer:
+
+training:
+  seeds: [17, 42, 2026]
+  max_epochs: 6
+  min_epochs_before_stopping: 3
+  early_stopping_patience: 2
+  micro_batch_size: 4
+  gradient_accumulation_steps: 8
+  learning_rate: 0.0002
+  beta1: 0.9
+  beta2: 0.95
+  epsilon: 1.0e-8
+  matrix_weight_decay: 0.01
+  norm_and_gate_weight_decay: 0.0
+  warmup_ratio: 0.05
+  min_lr_ratio: 0.10
+  max_grad_norm: 1.0
+  dtype: bfloat16
+  use_cache_during_training: false
+  gradient_checkpointing: false
+  output_dir: runs/v0
